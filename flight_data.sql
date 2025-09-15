@@ -1,3 +1,7 @@
+-- show databases;
+-- use airline_data;
+-- select database();
+
 CREATE DATABASE airline_data;
 -- Practice and EDA
 -- building tables
@@ -27,7 +31,7 @@ select count(*)
 from airports;
 
 -- Practice SQL with ?s from ChatGPT
--- checking for nulls
+-- checking for col nulls --> no nulls
 select arr_del15
 from airline_delay_cause a
 where a.arr_del15 is null
@@ -45,10 +49,10 @@ from airline_delay_cause  -- 1,868 rows
 select count(distinct carrier) as unique_carriers
 from airline_delay_cause -- 20 unique carriers
 
--- aggregation: For each carrier code, total delayed flights, ordered
+-- aggregation: For each carrier code, total delayed flights, order it
 select carrier, sum(arr_del15) as tot_delays
 from airline_delay_cause
-group by carrier -- why didnt this work when i didnt put group by
+group by carrier 
 order by tot_delays desc
 limit 5
 
@@ -59,35 +63,31 @@ join carriers c on c.carrier = a.carrier
 group by carrier, carrier_name
 order by tot_delays desc
 
--- total delay minutes: for each carrier, sum all delay minute columns into total_delay_minutes
+-- total delay minutes: for each carrier 
 -- using carrier delay this time
+select carrier, sum(carrier_delay) as delay_by_carrier #whydont i need distinct carrier here? is it because of the group by at the end
+from airline_delay_cause a
+group by carrier
+order by delay_by_carrier desc
+#how would this be dif if i got from carriers taable and joined. what advanatge could i get from that or is there none
 
--- select distinct(carrier), sum(carrier_delay) as tot_delay_minutes
--- from airline_delay_cause
--- group by carrier, carrier_delay -- this by each row not grouped
+-- avg min per delayed flight by carrier:
+select c.carrier, sum(a.carrier_delay)/sum(a.carrier_ct) as avg_min
+from airline_delay_cause a
+join carriers c on c.carrier = a.carrier
+where a.carrier in ('UA', 'DL', 'AA') -- where in: in analysis, make a top 5 carriers table instead of this
+group by c.carrier
+order by avg_min desc
 
+-- Find of all delays, what % is caused by the carrier
+select carrier, sum(arr_delay + carrier_delay + weather_delay + nas_delay + security_delay + late_aircraft_delay) as total_delay_min,
+round(100* sum(carrier_delay)/sum(arr_delay + carrier_delay + weather_delay + nas_delay + security_delay + late_aircraft_delay),1) as pct_carrier_min
+from airline_delay_cause
+group by carrier
+order by pct_carrier_min desc
 
-
--- avg min per delayed flight:
+-- Try above one with subquery instead of another col with repeated aggregate
 
 -- Having filter: show only carriers whose total delayed flights > x
-
--- top 5 carriers by delayed
-
--- Summary by carrier (with names)
-SELECT 
-  c.carrier_name, #is this assingign it the alias right here instead of select carrier_name as c
-  a.carrier,                                           -- keep code too; useful for joins in BI
-  SUM(a.arr_del15) AS total_delayed_flights,
-  SUM(a.carrier_delay + a.weather_delay + a.nas_delay 
-      + a.security_delay + a.late_aircraft_delay) AS total_delay_minutes,
-  SUM(a.carrier_delay + a.weather_delay + a.nas_delay 
-      + a.security_delay + a.late_aircraft_delay)
-    / NULLIF(SUM(a.arr_del15), 0) AS avg_delay_minutes
-FROM airline_delay_cause a #oh here you are creating hte aliases? There is a differenc ebetween carriers c and carriers as c, that smore for creating a column?
-JOIN carriers c 
-  ON a.carrier = c.carrier
-GROUP BY c.carrier_name, a.carrier
-ORDER BY total_delayed_flights DESC;
 
 --
