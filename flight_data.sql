@@ -69,7 +69,7 @@ select carrier, sum(carrier_delay) as delay_by_carrier #whydont i need distinct 
 from airline_delay_cause a
 group by carrier
 order by delay_by_carrier desc
-#how would this be dif if i got from carriers taable and joined. what advanatge could i get from that or is there none
+#how would this be dif if i got from carriers table and joined. what advantage could i get from that or is there none
 
 -- avg min per delayed flight by carrier:
 select c.carrier, sum(a.carrier_delay)/sum(a.carrier_ct) as avg_min
@@ -81,13 +81,39 @@ order by avg_min desc
 
 -- Find of all delays, what % is caused by the carrier
 select carrier, sum(arr_delay + carrier_delay + weather_delay + nas_delay + security_delay + late_aircraft_delay) as total_delay_min,
-round(100* sum(carrier_delay)/sum(arr_delay + carrier_delay + weather_delay + nas_delay + security_delay + late_aircraft_delay),1) as pct_carrier_min
+round(100* sum(carrier_delay)/sum(arr_delay + carrier_delay + weather_delay + nas_delay + security_delay + late_aircraft_delay),1) as pct_carrier_delay
 from airline_delay_cause
+where carrier in ('UA', 'DL','AA')
 group by carrier
-order by pct_carrier_min desc
+order by pct_carrier_delay desc
 
--- Try above one with subquery instead of another col with repeated aggregate
+-- Try above one with subquery instead of repeated aggregate
+-- building temporary table to reference (same as above table)
+create table carrier_delay_summary as
+select d.carrier, d.total_delay_min, round(100 * d.carrier_delay_min / d.total_delay_min, 1) as pct_carrier_delay
+from(
+	select carrier, sum(arr_delay + carrier_delay + weather_delay + nas_delay + security_delay + late_aircraft_delay) as total_delay_min,
+    sum(carrier_delay) as carrier_delay_min
+    from airline_delay_cause
+    group by carrier) as d
+order by pct_carrier_delay desc
 
 -- Having filter: show only carriers whose total delayed flights > x
+-- use having in place of where by if you want to filter after aggregations are performed
+select *
+from carrier_delay_summary
+-- WHERE
+select carrier, pct_carrier_delay
+from carrier_delay_summary
+where pct_carrier_delay > 15.0
+-- HAVING
+select d.carrier, d.total_delay_min, round(100 * d.carrier_delay_min / d.total_delay_min, 1) as pct_carrier_delay
+from(
+	select carrier, sum(arr_delay + carrier_delay + weather_delay + nas_delay + security_delay + late_aircraft_delay) as total_delay_min,
+    sum(carrier_delay) as carrier_delay_min
+    from airline_delay_cause
+    group by carrier) as d
+having pct_carrier_delay > 15.0
+order by pct_carrier_delay desc
 
 --
