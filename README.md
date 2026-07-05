@@ -31,3 +31,23 @@ The goal is to compare airline performance, understand what drives delays, and i
 - Delta has the lowest average delay minutes per arrival flight among AA, DL, and UA.
 - United's average delay duration for delayed flights has improved since 2020.
 - Carrier-related delays are similar across the three major airlines, averaging about one hour per affected flight.
+
+
+## Files
+### Interactive Model
+model.png
+
+### Delay Trend Analysis
+chart1.png
+
+### Delay Rate Comparison
+chart2.png
+
+### Carrier Delay Analysis
+carrierdelay.png
+
+### ANOVA Results
+anova.png
+
+### Old SQL code used for self learning
+flight_data.sql
