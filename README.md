@@ -35,7 +35,7 @@ The goal is to compare airline performance, understand what drives delays, and i
 
 ## Files
 ### Interactive Model
-model.png
+model2.png
 
 ### Delay Trend Analysis
 chart1.png
